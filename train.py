@@ -232,7 +232,7 @@ def run(fold, df, meta_features, n_meta_features, transforms_train, transforms_v
         if auc_20 > auc_20_max:
             print('auc_20_max ({:.6f} --> {:.6f}). Saving model ...'.format(auc_20_max, auc_20))
             torch.save(model.state_dict(), model_file2)
-            auc_20_max = 
+            auc_20_max = auc_20
         save_checkpoint(model, optimizer, scheduler_warmup, epoch, train_loss, checkpoint_path)
 
     torch.save(model.state_dict(), model_file3)
