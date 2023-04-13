@@ -203,7 +203,7 @@ def run(fold, df, meta_features, n_meta_features, transforms_train, transforms_v
     
     print(len(dataset_train), len(dataset_valid))
     
-    checkpoint_path = f'{args.kernel_type}_checkpoint_fold{fold}.pth'
+    checkpoint_path =  os.path.join(args.model_dir,f'{args.kernel_type}_checkpoint_fold{fold}.pth')
     if os.path.isfile(checkpoint_path):
         model, optimizer, scheduler_warmup, start_epoch, _ = load_checkpoint(model, optimizer, scheduler_warmup, checkpoint_path)
         print(f"Modelo cargado desde el checkpoint en la época {start_epoch}")
