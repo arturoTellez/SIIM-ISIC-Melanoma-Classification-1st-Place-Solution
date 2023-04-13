@@ -22,6 +22,7 @@ from dataset import get_df, get_transforms, MelanomaDataset
 from models import Effnet_Melanoma, Resnest_Melanoma, Seresnext_Melanoma
 
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--kernel-type', type=str, required=True)
@@ -201,8 +202,15 @@ def run(fold, df, meta_features, n_meta_features, transforms_train, transforms_v
     scheduler_warmup = GradualWarmupSchedulerV2(optimizer, multiplier=10, total_epoch=1, after_scheduler=scheduler_cosine)
     
     print(len(dataset_train), len(dataset_valid))
+    
+    checkpoint_path = f'{args.kernel_type}_checkpoint_fold{fold}.pth'
+    if os.path.isfile(checkpoint_path):
+        model, optimizer, scheduler_warmup, start_epoch, _ = load_checkpoint(model, optimizer, scheduler_warmup, checkpoint_path)
+        print(f"Modelo cargado desde el checkpoint en la época {start_epoch}")
+    else:
+        start_epoch = 1
 
-    for epoch in range(1, args.n_epochs + 1):
+    for epoch in range(start_epoch, args.n_epochs + 1):
         print(time.ctime(), f'Fold {fold}, Epoch {epoch}')
 #         scheduler_warmup.step(epoch - 1)
 
@@ -224,7 +232,8 @@ def run(fold, df, meta_features, n_meta_features, transforms_train, transforms_v
         if auc_20 > auc_20_max:
             print('auc_20_max ({:.6f} --> {:.6f}). Saving model ...'.format(auc_20_max, auc_20))
             torch.save(model.state_dict(), model_file2)
-            auc_20_max = auc_20
+            auc_20_max = 
+        save_checkpoint(model, optimizer, scheduler_warmup, epoch, train_loss, checkpoint_path)
 
     torch.save(model.state_dict(), model_file3)
 

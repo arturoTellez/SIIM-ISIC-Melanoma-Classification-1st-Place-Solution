@@ -3,6 +3,53 @@ import torch.nn as nn
 import geffnet
 from resnest.torch import resnest101
 from pretrainedmodels import se_resnext101_32x4d
+import torch
+import torch.nn as nn
+from torchvision.models import mobilenet_v2
+
+class Swish_Module(nn.Module):
+    def forward(self, x):
+        return x * torch.sigmoid(x)
+
+class MobileNet_Melanoma(nn.Module):
+    def __init__(self, out_dim, n_meta_features=0, n_meta_dim=[512, 128], pretrained=False):
+        super(MobileNet_Melanoma, self).__init__()
+        self.n_meta_features = n_meta_features
+        self.enet = mobilenet_v2(pretrained=pretrained)
+        self.dropouts = nn.ModuleList([
+            nn.Dropout(0.5) for _ in range(5)
+        ])
+        in_ch = self.enet.classifier[1].in_features
+        if n_meta_features > 0:
+            self.meta = nn.Sequential(
+                nn.Linear(n_meta_features, n_meta_dim[0]),
+                nn.BatchNorm1d(n_meta_dim[0]),
+                Swish_Module(),
+                nn.Dropout(p=0.3),
+                nn.Linear(n_meta_dim[0], n_meta_dim[1]),
+                nn.BatchNorm1d(n_meta_dim[1]),
+                Swish_Module(),
+            )
+            in_ch += n_meta_dim[1]
+        self.myfc = nn.Linear(in_ch, out_dim)
+        self.enet.classifier = nn.Identity()
+
+    def extract(self, x):
+        x = self.enet(x)
+        return x
+
+    def forward(self, x, x_meta=None):
+        x = self.extract(x).squeeze(-1).squeeze(-1)
+        if self.n_meta_features > 0:
+            x_meta = self.meta(x_meta)
+            x = torch.cat((x, x_meta), dim=1)
+        for i, dropout in enumerate(self.dropouts):
+            if i == 0:
+                out = self.myfc(dropout(x))
+            else:
+                out += self.myfc(dropout(x))
+        out /= len(self.dropouts)
+        return out
 
 
 sigmoid = nn.Sigmoid()
