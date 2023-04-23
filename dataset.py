@@ -133,7 +133,10 @@ def get_df(kernel_type, out_dim, data_dir, data_folder, use_meta):
     # 2020 data
     df_train = pd.read_csv(os.path.join(data_dir, f'jpeg-melanoma-{data_folder}x{data_folder}', 'train.csv'))
     df_train = df_train[df_train['tfrecord'] != -1].reset_index(drop=True)
-    df_train['filepath'] = df_train['image_name'].apply(lambda x: os.path.join(data_dir, f'jpeg-melanoma-{data_folder}x{data_folder}/train', f'{x}.jpg'))
+       # self.annotations = self.annotations[(self.annotations.image_name + ".jpg").isin(os.listdir(root_dir))]
+    path_temp = os.path.join(data_dir, f'jpeg-melanoma-{data_folder}x{data_folder}/train')
+    df_train = df_train[(df_train.image_name + ".jpg").isin(os.listdir(path_temp))]
+    df_train['filepath'] = df_train['image_name'].apply(lambda x: os.path.join(data_dir, path_temp, f'{x}.jpg'))
 
     if 'newfold' in kernel_type:
         tfrecord2fold = {
