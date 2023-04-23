@@ -162,6 +162,7 @@ def get_df(kernel_type, out_dim, data_dir, data_folder, use_meta):
     # 2018, 2019 data (external data)
     df_train2 = pd.read_csv(os.path.join(data_dir, f'jpeg-isic2019-{data_folder}x{data_folder}', 'train.csv'))
     df_train2 = df_train2[df_train2['tfrecord'] >= 0].reset_index(drop=True)
+    df_train2 = df_train2[(df_train2.image_name + ".jpg").isin(os.listdir(path_temp))]
     df_train2['filepath'] = df_train2['image_name'].apply(lambda x: os.path.join(data_dir, f'jpeg-isic2019-{data_folder}x{data_folder}/train', f'{x}.jpg'))
     if 'newfold' in kernel_type:
         df_train2['tfrecord'] = df_train2['tfrecord'] % 15
@@ -197,6 +198,10 @@ def get_df(kernel_type, out_dim, data_dir, data_folder, use_meta):
 
     # test data
     df_test = pd.read_csv(os.path.join(data_dir, f'jpeg-melanoma-{data_folder}x{data_folder}', 'test.csv'))
+    path_temp_test = os.path.join(data_dir, f'jpeg-melanoma-{data_folder}x{data_folder}/test')
+    
+    df_test = df_test[(df_test.image_name + ".jpg").isin(os.listdir(path_temp_test))]
+
     df_test['filepath'] = df_test['image_name'].apply(lambda x: os.path.join(data_dir, f'jpeg-melanoma-{data_folder}x{data_folder}/test', f'{x}.jpg'))
 
     if use_meta:
